@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SJD Unified PSP / EAP / ERP Scenario Map</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f6f9; color: #1a2332; line-height: 1.45; }
+  .header { background: #1F3864; color: white; padding: 20px 32px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .layout { display: grid; grid-template-columns: 280px 1fr 320px; gap: 0; min-height: calc(100vh - 82px); }
+  .sidebar { background: white; border-right: 1px solid #e1e5eb; padding: 20px 0; overflow-y: auto; }
+  .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; padding: 0 20px 10px; font-weight: 600; }
+  .scenario-group { margin-bottom: 18px; }
+  .scenario-btn { display: block; width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; border-left: 3px solid transparent; cursor: pointer; font-size: 13px; color: #1a2332; transition: all 0.15s; }
+  .scenario-btn:hover { background: #f4f6f9; }
+  .scenario-btn.active { background: #eef2f8; border-left-color: #1F3864; font-weight: 600; }
+  .scenario-btn .tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 6px; font-weight: 600; }
+  .tag.psp { background: #dbeafe; color: #1e40af; }
+  .tag.eap { background: #fef3c7; color: #92400e; }
+  .tag.erp { background: #fee2e2; color: #991b1b; }
+  .main { padding: 24px 32px; overflow-y: auto; }
+  .scenario-title { font-size: 20px; font-weight: 600; color: #1F3864; }
+  .scenario-sub { font-size: 13px; color: #6b7280; margin-top: 4px; margin-bottom: 20px; }
+  .phase { margin-bottom: 22px; }
+  .phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .phase-badge { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 700; letter-spacing: 0.05em; }
+  .phase-badge.psp { background: #1e40af; color: white; }
+  .phase-badge.eap { background: #b45309; color: white; }
+  .phase-badge.erp { background: #991b1b; color: white; }
+  .phase-badge.post { background: #065f46; color: white; }
+  .phase-title { font-size: 14px; font-weight: 600; }
+  .lanes { display: grid; grid-template-columns: 120px 1fr; background: white; border: 1px solid #e1e5eb; border-radius: 6px; overflow: hidden; }
+  .lane-role { padding: 12px; background: #f8fafc; border-right: 1px solid #e1e5eb; border-bottom: 1px solid #e1e5eb; font-size: 12px; font-weight: 600; color: #1F3864; display: flex; align-items: center; }
+  .lane-actions { padding: 12px; border-bottom: 1px solid #e1e5eb; font-size: 13px; }
+  .lane-role:last-of-type, .lane-actions:last-of-type { border-bottom: none; }
+  .lane-actions ol { padding-left: 18px; }
+  .lane-actions li { margin-bottom: 4px; }
+  .decision { background: #fff8e1; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px 16px; margin: 14px 0; font-size: 13px; }
+  .decision strong { color: #92400e; }
+  .aside { background: #fafbfc; border-left: 1px solid #e1e5eb; padding: 20px; overflow-y: auto; }
+  .aside h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin-bottom: 10px; font-weight: 600; }
+  .aside-block { background: white; border: 1px solid #e1e5eb; border-radius: 6px; padding: 12px; margin-bottom: 14px; }
+  .kpi-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px dashed #e1e5eb; }
+  .kpi-row:last-child { border-bottom: none; }
+  .kpi-label { color: #4b5563; }
+  .kpi-value { font-weight: 600; color: #1F3864; }
+  .equip-list { list-style: none; }
+  .equip-list li { padding: 4px 0; font-size: 12px; color: #4b5563; }
+  .equip-list li::before { content: "▸ "; color: #1F3864; font-weight: 600; }
+  .intro { background: white; border: 1px solid #e1e5eb; border-radius: 6px; padding: 18px; }
+  .intro p { font-size: 13px; margin-bottom: 8px; color: #4b5563; }
+  .legend { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .legend-item { font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SJD Unified PSP / EAP / ERP Scenario Map</h1>
+  <p>NUS Aquatic Facilities (USC &amp; UTown) &nbsp;·&nbsp; MSUM/SPORTS/T/2026/01 &nbsp;·&nbsp; 3 LG + 1 CS baseline manning</p>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="scenario-group">
+      <h2>Baseline</h2>
+      <button class="scenario-btn active" data-scenario="psp">Routine Surveillance <span class="tag psp">PSP</span></button>
+    </div>
+    <div class="scenario-group">
+      <h2>Aquatic Emergencies</h2>
+      <button class="scenario-btn" data-scenario="active">Active Drowning <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="passive">Passive / Submerged Victim <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="swb">Shallow Water Blackout <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="spinal">Suspected Spinal Injury <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="cardiac">Cardiac Arrest on Deck <span class="tag erp">ERP</span></button>
+    </div>
+    <div class="scenario-group">
+      <h2>Environmental</h2>
+      <button class="scenario-btn" data-scenario="lightning">Lightning Alert <span class="tag eap">EAP</span></button>
+      <button class="scenario-btn" data-scenario="chemical">Chemical / Water Quality <span class="tag eap">EAP</span></button>
+      <button class="scenario-btn" data-scenario="fire">Fire / Evacuation <span class="tag eap">EAP</span></button>
+    </div>
+    <div class="scenario-group">
+      <h2>Operational</h2>
+      <button class="scenario-btn" data-scenario="missing">Missing Person Report <span class="tag eap">EAP</span></button>
+      <button class="scenario-btn" data-scenario="misconduct">Patron Misconduct <span class="tag psp">PSP</span></button>
+    </div>
+  </div>
+
+  <div class="main" id="main"></div>
+
+  <div class="aside" id="aside"></div>
+</div>
+
+<script>
+const scenarios = {
+  psp: {
+    title: "Routine Pool Surveillance Procedure",
+    sub: "Baseline vigilance protocol under the 10/20 scanning standard. All scenarios branch from this state.",
+    phases: [
+      {
+        type: "psp", title: "Continuous Surveillance",
+        lanes: [
+          { role: "Duty LG", actions: ["Sweep designated zone within 10 seconds using RID scan (Recognise, Identify, Decide)", "Reach any distressed swimmer within 20 seconds of recognition", "Rescue tube worn at all times, whistle accessible"] },
+          { role: "Co-Duty LG", actions: ["15-minute patrol of pool perimeter with rescue tube", "Monitor blind spots and glare zones during rotation", "Silent signal handover on rotation change"] },
+          { role: "Senior LG / Team Lead", actions: ["Verify staffing per shift (3 LG + 1 CS)", "Rotate LGs on 20 to 30 minute cycles to preserve scan span", "Log water quality checks (3 times daily)"] },
+          { role: "Counter Staff", actions: ["Monitor entry and enforce Code of Practice signage", "Hold LG mobile devices during on-post periods", "Radio check every hour"] }
+        ]
+      },
+      {
+        type: "psp", title: "Preventive Intervention (KPI 3a)",
+        lanes: [
+          { role: "Any LG", actions: ["Issue verbal warning for running, breath-hold games, or lane rope misuse", "Log intervention in daily activity register", "Escalate to SLG if patron non-compliant"] }
+        ]
+      }
+    ]
+  },
+  active: {
+    title: "Active Drowning (Distressed Swimmer)",
+    sub: "Victim conscious, vertical in water, silent struggle, unable to call for help. Recognition window under 20 seconds.",
+    phases: [
+      {
+        type: "eap", title: "Recognition &amp; Activation",
+        lanes: [
+          { role: "Duty LG", actions: ["Recognise distress signs within 10 second scan cycle", "Single long whistle blast, point at victim, signal Co-Duty LG", "Enter water with rescue tube within 20 seconds"] }
+        ]
+      },
+      {
+        type: "erp", title: "Rescue Execution",
+        lanes: [
+          { role: "Duty LG", actions: ["Approach with rescue tube extended, verbal reassurance", "Contact tow to nearest exit point", "Assess for secondary drowning symptoms on deck"] },
+          { role: "Co-Duty LG", actions: ["Clear affected pool immediately, three short whistle blasts", "Position at pool edge to assist extrication", "Retrieve first aid kit if secondary assessment required"] },
+          { role: "Counter Staff", actions: ["Close pool admission, note time of incident", "Standby to contact NUS Security if condition deteriorates"] },
+          { role: "Senior LG", actions: ["Direct scene, ensure crowd control", "Assess victim, decide on ambulance escalation"] }
+        ]
+      },
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Complete Appendix C Incident Report within shift", "Debrief team, review scan pattern that identified victim", "Submit report to NUS/MSUM within 24 hours"] } ] }
+    ]
+  },
+  passive: {
+    title: "Passive Drowning / Submerged Victim",
+    sub: "Victim unconscious, submerged, no visible struggle. Recognition must occur within the 30-second awareness standard (KPI 1a).",
+    phases: [
+      {
+        type: "eap", title: "Recognition &amp; Activation",
+        lanes: [
+          { role: "Duty LG", actions: ["Identify submerged silhouette within 30 second scan", "Three long whistle blasts, point down at victim", "Immediate entry, controlled descent to victim"] }
+        ]
+      },
+      {
+        type: "erp", title: "Rescue &amp; Extrication",
+        lanes: [
+          { role: "Duty LG", actions: ["Surface with victim, tow to shallow exit", "Extricate within 1 minute 30 seconds (KPI 2b)", "Commence primary survey on deck"] },
+          { role: "Co-Duty LG", actions: ["Clear all bathers from all pools", "Retrieve softpack (AED, oxy-viva, BVM, spinal board)", "Assist extrication, prepare deck for CPR"] },
+          { role: "Counter Staff", actions: ["Call NUS Security (activate 995 ambulance)", "Alert MSUM duty officer", "Trace victim ID and belongings"] },
+          { role: "Senior LG / Third LG", actions: ["Take incident command", "Direct crowd control and pool clearance", "Coordinate ambulance ingress route"] }
+        ]
+      },
+      {
+        type: "erp", title: "Resuscitation Sequence",
+        lanes: [
+          { role: "Duty LG (Rescuer 1)", actions: ["Initiate CPR within 30 seconds of extrication (KPI 2c)", "30:2 compressions to ventilations", "Swap every 2 minutes with Rescuer 2"] },
+          { role: "Co-Duty LG (Rescuer 2)", actions: ["Attach AED pads within 1 minute 30 seconds", "Clear victim for shock, deliver as advised", "Prepare BVM and oxygen after first shock cycle"] },
+          { role: "Counter Staff", actions: ["Guide paramedics from gate to poolside", "Note ambulance number plate and destination hospital"] }
+        ]
+      },
+      {
+        type: "post", title: "Handover &amp; Post-Incident",
+        lanes: [
+          { role: "Senior LG", actions: ["Handover to paramedics: shocks given, CPR duration, meds", "Retain AED analysis card for MSUM", "Complete Appendix C, replenish softpack consumables"] }
+        ]
+      }
+    ]
+  },
+  swb: {
+    title: "Shallow Water Blackout (SWB) / Samba",
+    sub: "Hyperventilation-induced hypoxic blackout, typically freedive or breath-hold training. Victim slumps silently, often near pool bottom.",
+    phases: [
+      {
+        type: "eap", title: "Pre-Incident Vigilance (Activity-Specific PSP)",
+        lanes: [
+          { role: "Duty LG", actions: ["Flag any patron performing repeated breath-hold sets", "Enforce buddy system for freedive activity", "Intervene at first sign of loss of motor control (LMC / Samba)"] }
+        ]
+      },
+      {
+        type: "erp", title: "Rescue Execution",
+        lanes: [
+          { role: "Duty LG", actions: ["Enter immediately, support head above water", "Blow across face to trigger breathing reflex if surface blackout", "Tow to exit, maintain airway"] },
+          { role: "Co-Duty LG", actions: ["Clear pool, retrieve oxy-viva and BVM", "Position for extrication at nearest edge"] },
+          { role: "Counter Staff", actions: ["Standby for ambulance activation", "Log incident time and identify buddy / group lead"] }
+        ]
+      },
+      {
+        type: "erp", title: "On-Deck Management",
+        lanes: [
+          { role: "Duty LG", actions: ["Recovery position if breathing", "Administer O2 via non-rebreather at 15 LPM", "Monitor for delayed pulmonary distress up to 4 hours"] },
+          { role: "Senior LG", actions: ["Mandatory ambulance escalation (secondary drowning risk)", "Brief NUS/MSUM on activity context"] }
+        ]
+      },
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Appendix C with activity classification (freedive / breath-hold)", "Review whether activity should be permitted under standing PSP", "Update quarterly training brief"] } ] }
+    ]
+  },
+  spinal: {
+    title: "Suspected Spinal Injury",
+    sub: "Trauma from diving, slip, or collision. Victim may be conscious. In-water stabilisation before extrication.",
+    phases: [
+      {
+        type: "erp", title: "In-Water Stabilisation",
+        lanes: [
+          { role: "Duty LG", actions: ["Approach without creating waves", "Vice grip or head splint technique to immobilise C-spine", "Hold position, do not rotate victim"] },
+          { role: "Co-Duty LG", actions: ["Clear pool", "Retrieve spinal board and stiff neck collar", "Enter water to assist board slide"] }
+        ]
+      },
+      {
+        type: "erp", title: "Extrication",
+        lanes: [
+          { role: "Both LGs", actions: ["Slide spinal board under victim, secure straps", "Apply cervical collar", "Coordinated lift to deck, maintain spinal alignment"] },
+          { role: "Counter Staff", actions: ["Call ambulance immediately", "Prepare route for paramedics"] },
+          { role: "Senior LG", actions: ["Monitor breathing and consciousness", "Prevent movement, reassure victim"] }
+        ]
+      },
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Appendix C with mechanism of injury", "Preserve scene for MSUM/WSH review if applicable", "Team debrief on stabilisation technique"] } ] }
+    ]
+  },
+  cardiac: {
+    title: "Cardiac Arrest on Deck",
+    sub: "Sudden collapse of patron or staff on pool deck or in gym/MPH support role. Not water-related.",
+    phases: [
+      {
+        type: "erp", title: "Immediate Response",
+        lanes: [
+          { role: "Nearest LG", actions: ["Confirm unresponsive, no breathing", "Shout for AED and help", "Commence CPR within 30 seconds"] },
+          { role: "Second LG", actions: ["Retrieve AED, first aid kit, oxy-viva", "Attach pads, deliver shock as advised"] },
+          { role: "Counter Staff", actions: ["Call 995 and NUS Security", "Clear route for paramedics"] },
+          { role: "Senior LG", actions: ["Take command, ensure pool coverage maintained if possible", "Decide whether to close pool"] }
+        ]
+      },
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Complete Appendix C", "Reset AED, replenish pads and consumables", "Notify NUS/MSUM and support staff welfare"] } ] }
+    ]
+  },
+  lightning: {
+    title: "Lightning Alert",
+    sub: "Triggered by MSUM alert system or observed strike within 8km. Both pools evacuated.",
+    phases: [
+      {
+        type: "eap", title: "Activation",
+        lanes: [
+          { role: "Senior LG", actions: ["Confirm alert with MSUM", "Sound evacuation whistle pattern"] },
+          { role: "Duty LG", actions: ["Clear all bathers from water immediately", "Direct patrons to sheltered zones away from metal fittings"] },
+          { role: "Counter Staff", actions: ["Post lightning notice, suspend admissions", "Log alert start time"] }
+        ]
+      },
+      {
+        type: "eap", title: "All-Clear Protocol",
+        lanes: [
+          { role: "Senior LG", actions: ["30-minute wait from last observed strike before reopening", "Log all-clear time and reopen pools"] }
+        ]
+      }
+    ]
+  },
+  chemical: {
+    title: "Chemical / Water Quality Incident",
+    sub: "Chlorine leak, cloudy water, suspected contamination, or failed water test.",
+    phases: [
+      {
+        type: "eap", title: "Immediate Action",
+        lanes: [
+          { role: "Duty LG", actions: ["Close affected pool immediately", "Evacuate bathers upwind if chlorine odour present", "Rope off area"] },
+          { role: "Senior LG", actions: ["Notify NUS/MSUM and pool plant operator", "Retest water, log parameters"] },
+          { role: "Counter Staff", actions: ["Post closure notice", "Divert patrons to unaffected pool if operational"] }
+        ]
+      },
+      { type: "post", title: "Reopening", lanes: [ { role: "Senior LG", actions: ["Reopen only after MSUM approval and two consecutive clear tests", "Log incident in daily register"] } ] }
+    ]
+  },
+  fire: {
+    title: "Fire / Building Evacuation",
+    sub: "Fire alarm activation at USC or SRC. Support role to NUS Fire Safety Manager.",
+    phases: [
+      {
+        type: "eap", title: "Evacuation",
+        lanes: [
+          { role: "Duty LG", actions: ["Clear all bathers from water", "Direct patrons to nearest fire exit and assembly point"] },
+          { role: "Co-Duty LG", actions: ["Sweep changing rooms and toilets", "Assist mobility-impaired patrons"] },
+          { role: "Counter Staff", actions: ["Grab attendance register and daily log", "Report to assembly point for headcount"] },
+          { role: "Senior LG", actions: ["Report to NUS Fire Warden", "Confirm all staff and known patrons accounted for"] }
+        ]
+      }
+    ]
+  },
+  missing: {
+    title: "Missing Person Report",
+    sub: "Parent or companion reports a missing child or adult believed to have been at the pool.",
+    phases: [
+      {
+        type: "eap", title: "Search Activation",
+        lanes: [
+          { role: "Counter Staff", actions: ["Take description, last known location, and time", "Alert Senior LG immediately"] },
+          { role: "Senior LG", actions: ["Immediate visual sweep of all pools (bottom scan)", "Do not delay water search for land search"] },
+          { role: "Duty + Co-Duty LG", actions: ["Split sweep: one water bottom scan, one changing rooms and deck", "Whistle pattern for pool clearance if bottom scan needed"] }
+        ]
+      },
+      { type: "post", title: "Escalation", lanes: [ { role: "Senior LG", actions: ["If not located within 5 minutes, escalate to NUS Security", "Log all steps taken with timestamps"] } ] }
+    ]
+  },
+  misconduct: {
+    title: "Patron Misconduct",
+    sub: "Non-compliance with pool rules, aggressive behaviour, or unauthorised entry.",
+    phases: [
+      {
+        type: "psp", title: "Graduated Response",
+        lanes: [
+          { role: "Duty LG", actions: ["Verbal warning citing specific rule", "If repeated, second warning with named consequence"] },
+          { role: "Senior LG", actions: ["Take over engagement if patron remains non-compliant", "Request patron leave the facility"] },
+          { role: "Counter Staff", actions: ["Log incident with time and description", "Contact NUS Security if patron refuses to leave or becomes aggressive"] }
+        ]
+      }
+    ]
+  }
+};
+
+const kpiData = {
+  psp: [
+    ["Scan cycle", "10 seconds"],
+    ["Recognition to reach", "20 seconds"],
+    ["Perimeter patrol", "Every 15 min"],
+    ["Preventive interventions", "Logged (KPI 3a)"]
+  ],
+  active: [
+    ["Recognition", "10 sec scan"],
+    ["Reach victim", "Within 20 sec"],
+    ["Extrication", "Within 90 sec"]
+  ],
+  passive: [
+    ["Awareness drill standard", "30 sec"],
+    ["Extrication (KPI 2b)", "1 min 30 sec"],
+    ["CPR initiation (KPI 2c)", "30 sec"],
+    ["AED setup", "1 min 30 sec"]
+  ],
+  swb: [
+    ["Recognition (LMC signs)", "Immediate"],
+    ["O2 administration", "15 LPM NRB"],
+    ["Ambulance", "Mandatory"]
+  ],
+  spinal: [
+    ["Stabilisation", "Before extrication"],
+    ["Board application", "In-water"],
+    ["Ambulance", "Mandatory"]
+  ],
+  cardiac: [
+    ["CPR initiation", "30 sec"],
+    ["AED attachment", "90 sec"],
+    ["995 activation", "Immediate"]
+  ],
+  lightning: [
+    ["Pool clearance", "Immediate on alert"],
+    ["All-clear wait", "30 min from last strike"]
+  ],
+  chemical: [
+    ["Pool closure", "Immediate"],
+    ["Reopen criteria", "2 clear tests + MSUM sign-off"]
+  ],
+  fire: [
+    ["Evacuation initiation", "On alarm"],
+    ["Assembly headcount", "Within 5 min"]
+  ],
+  missing: [
+    ["Water bottom scan", "Immediate"],
+    ["Security escalation", "5 min"]
+  ],
+  misconduct: [
+    ["Warning", "First occurrence"],
+    ["Escalation", "Second occurrence"],
+    ["Security involvement", "If refusal or aggression"]
+  ]
+};
+
+const equipData = {
+  psp: ["Rescue tube (each LG)", "Whistle", "Water test kit", "Daily activity register"],
+  active: ["Rescue tube", "First aid kit", "Whistle", "Incident report (Appendix C)"],
+  passive: ["Rescue tube", "AED softpack", "Oxy-viva + spare cylinders", "BVM", "Spinal board", "Stretcher", "Walkie-talkie"],
+  swb: ["Rescue tube", "Oxy-viva with NRB mask", "BVM", "First aid kit", "Recovery position padding"],
+  spinal: ["Spinal board", "Stiff neck collar (adult + child)", "Head immobiliser", "Rescue tube"],
+  cardiac: ["AED with adult pads", "Oxy-viva", "BVM", "First aid kit", "Shaver + towel"],
+  lightning: ["MSUM alert system", "PA / whistle", "Incident log"],
+  chemical: ["Water test kit", "Closure signage", "PPE (gloves, mask)", "MSUM contact list"],
+  fire: ["Attendance register", "Assembly point map", "First aid kit (mobile)"],
+  missing: ["Walkie-talkie", "Description log form", "Pool bottom scan protocol"],
+  misconduct: ["Rule signage reference", "Incident log", "NUS Security contact"]
+};
+
+function renderScenario(key) {
+  const s = scenarios[key];
+  const main = document.getElementById('main');
+  const aside = document.getElementById('aside');
+
+  let html = `<div class="scenario-title">${s.title}</div><div class="scenario-sub">${s.sub}</div>`;
+  s.phases.forEach(p => {
+    html += `<div class="phase"><div class="phase-header"><span class="phase-badge ${p.type}">${p.type.toUpperCase()}</span><span class="phase-title">${p.title}</span></div>`;
+    html += `<div class="lanes">`;
+    p.lanes.forEach(l => {
+      html += `<div class="lane-role">${l.role}</div><div class="lane-actions"><ol>`;
+      l.actions.forEach(a => { html += `<li>${a}</li>`; });
+      html += `</ol></div>`;
+    });
+    html += `</div></div>`;
+  });
+  main.innerHTML = html;
+
+  let asideHtml = `<div class="aside-block"><h3>KPI Timings</h3>`;
+  kpiData[key].forEach(([label, val]) => {
+    asideHtml += `<div class="kpi-row"><span class="kpi-label">${label}</span><span class="kpi-value">${val}</span></div>`;
+  });
+  asideHtml += `</div>`;
+  asideHtml += `<div class="aside-block"><h3>Equipment Deployed</h3><ul class="equip-list">`;
+  equipData[key].forEach(e => { asideHtml += `<li>${e}</li>`; });
+  asideHtml += `</ul></div>`;
+  asideHtml += `<div class="aside-block"><h3>Reference</h3><div style="font-size:12px;color:#4b5563;">Appendix C: Incident Report Form<br>Appendix H/I/J: Equipment Checklists<br>Requirement Spec Clause 4.4<br>KPI matrix (Vigilance, Response, Prevention)</div></div>`;
+  aside.innerHTML = asideHtml;
+}
+
+document.querySelectorAll('.scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderScenario(btn.dataset.scenario);
+  });
+});
+
+renderScenario('psp');
+</script>
+</body>
+</html>
