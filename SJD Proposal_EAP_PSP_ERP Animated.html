@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SJD Unified PSP / EAP / ERP Scenario Map</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f6f9; color: #1a2332; line-height: 1.45; }
+  .header { background: #1F3864; color: white; padding: 20px 32px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: 0; min-height: calc(100vh - 82px); }
+  .sidebar { background: white; border-right: 1px solid #e1e5eb; padding: 20px 0; overflow-y: auto; }
+  .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; padding: 0 20px 10px; font-weight: 600; }
+  .scenario-group { margin-bottom: 18px; }
+  .scenario-btn { display: block; width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; border-left: 3px solid transparent; cursor: pointer; font-size: 13px; color: #1a2332; transition: all 0.15s; }
+  .scenario-btn:hover { background: #f4f6f9; }
+  .scenario-btn.active { background: #eef2f8; border-left-color: #1F3864; font-weight: 600; }
+  .scenario-btn .tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 6px; font-weight: 600; }
+  .scenario-btn .anim-flag { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; margin-left: 4px; font-weight: 600; background: #10b981; color: white; }
+  .tag.psp { background: #dbeafe; color: #1e40af; }
+  .tag.eap { background: #fef3c7; color: #92400e; }
+  .tag.erp { background: #fee2e2; color: #991b1b; }
+  .main { padding: 24px 32px; overflow-y: auto; }
+  .scenario-title { font-size: 20px; font-weight: 600; color: #1F3864; }
+  .scenario-sub { font-size: 13px; color: #6b7280; margin-top: 4px; margin-bottom: 20px; }
+
+  .anim-container { background: white; border: 1px solid #e1e5eb; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+  .anim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .anim-title { font-size: 14px; font-weight: 600; color: #1F3864; }
+  .anim-controls { display: flex; gap: 8px; align-items: center; }
+  .anim-btn { padding: 6px 14px; background: #1F3864; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: 600; }
+  .anim-btn:hover { background: #2a4a7a; }
+  .anim-btn.secondary { background: #e5e7eb; color: #1a2332; }
+  .anim-stage { position: relative; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+  .anim-stage svg { display: block; width: 100%; height: auto; }
+  .clock-overlay { position: absolute; top: 10px; right: 12px; background: rgba(31, 56, 100, 0.95); color: white; padding: 6px 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .kpi-item { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px 10px; font-size: 11px; }
+  .kpi-item.hit { background: #d1fae5; border-color: #10b981; }
+  .kpi-item.pending { color: #6b7280; }
+  .kpi-item-label { font-weight: 600; color: #1F3864; margin-bottom: 2px; }
+  .kpi-item.hit .kpi-item-label { color: #065f46; }
+  .anim-log { margin-top: 12px; background: #1a2332; color: #d1d5db; border-radius: 4px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 11px; max-height: 100px; overflow-y: auto; }
+  .anim-log .log-line { padding: 2px 0; }
+  .anim-log .log-time { color: #60a5fa; font-weight: 700; margin-right: 8px; }
+  .anim-placeholder { padding: 30px; text-align: center; color: #6b7280; font-size: 13px; background: #f8fafc; border-radius: 6px; }
+
+  .phase { margin-bottom: 22px; }
+  .phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .phase-badge { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 700; letter-spacing: 0.05em; }
+  .phase-badge.psp { background: #1e40af; color: white; }
+  .phase-badge.eap { background: #b45309; color: white; }
+  .phase-badge.erp { background: #991b1b; color: white; }
+  .phase-badge.post { background: #065f46; color: white; }
+  .phase-title { font-size: 14px; font-weight: 600; }
+  .lanes { display: grid; grid-template-columns: 120px 1fr; background: white; border: 1px solid #e1e5eb; border-radius: 6px; overflow: hidden; }
+  .lane-role { padding: 12px; background: #f8fafc; border-right: 1px solid #e1e5eb; border-bottom: 1px solid #e1e5eb; font-size: 12px; font-weight: 600; color: #1F3864; display: flex; align-items: center; }
+  .lane-actions { padding: 12px; border-bottom: 1px solid #e1e5eb; font-size: 13px; }
+  .lane-role:last-of-type, .lane-actions:last-of-type { border-bottom: none; }
+  .lane-actions ol { padding-left: 18px; }
+  .lane-actions li { margin-bottom: 4px; }
+  .aside { background: #fafbfc; border-left: 1px solid #e1e5eb; padding: 20px; overflow-y: auto; }
+  .aside h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin-bottom: 10px; font-weight: 600; }
+  .aside-block { background: white; border: 1px solid #e1e5eb; border-radius: 6px; padding: 12px; margin-bottom: 14px; }
+  .kpi-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px dashed #e1e5eb; }
+  .kpi-row:last-child { border-bottom: none; }
+  .kpi-label { color: #4b5563; }
+  .kpi-value { font-weight: 600; color: #1F3864; }
+  .equip-list { list-style: none; }
+  .equip-list li { padding: 4px 0; font-size: 12px; color: #4b5563; }
+  .equip-list li::before { content: "▸ "; color: #1F3864; font-weight: 600; }
+
+  .actor { transition: transform 0.5s ease-in-out; }
+  .actor.fast { transition: transform 0.2s ease-in-out; }
+  .actor circle { transition: fill 0.3s; }
+  .actor.alert circle { fill: #fbbf24 !important; }
+  .cpr-pulse { animation: pulse 0.6s infinite; transform-origin: center; }
+  .aed-flash { animation: flash 0.4s 3; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+  @keyframes flash { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SJD Unified PSP / EAP / ERP Scenario Map</h1>
+  <p>NUS Aquatic Facilities (USC &amp; UTown) &nbsp;·&nbsp; MSUM/SPORTS/T/2026/01 &nbsp;·&nbsp; 3 LG + 1 CS baseline manning</p>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="scenario-group">
+      <h2>Baseline</h2>
+      <button class="scenario-btn active" data-scenario="psp">Routine Surveillance <span class="tag psp">PSP</span></button>
+    </div>
+    <div class="scenario-group">
+      <h2>Aquatic Emergencies</h2>
+      <button class="scenario-btn" data-scenario="active">Active Drowning <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="passive">Passive / Submerged Victim <span class="tag erp">ERP</span><span class="anim-flag">ANIMATED</span></button>
+      <button class="scenario-btn" data-scenario="swb">Shallow Water Blackout <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="spinal">Suspected Spinal Injury <span class="tag erp">ERP</span></button>
+      <button class="scenario-btn" data-scenario="cardiac">Cardiac Arrest on Deck <span class="tag erp">ERP</span></button>
+    </div>
+    <div class="scenario-group">
+      <h2>Environmental</h2>
+      <button class="scenario-btn" data-scenario="lightning">Lightning Alert <span class="tag eap">EAP</span></button>
+      <button class="scenario-btn" data-scenario="chemical">Chemical / Water Quality <span class="tag eap">EAP</span></button>
+      <button class="scenario-btn" data-scenario="fire">Fire / Evacuation <span class="tag eap">EAP</span></button>
+    </div>
+    <div class="scenario-group">
+      <h2>Operational</h2>
+      <button class="scenario-btn" data-scenario="missing">Missing Person Report <span class="tag eap">EAP</span></button>
+      <button class="scenario-btn" data-scenario="misconduct">Patron Misconduct <span class="tag psp">PSP</span></button>
+    </div>
+  </div>
+
+  <div class="main" id="main"></div>
+  <div class="aside" id="aside"></div>
+</div>
+
+<script>
+// ===== SCENARIO DATA =====
+const scenarios = {
+  psp: { title: "Routine Pool Surveillance Procedure", sub: "Baseline vigilance protocol under the 10/20 scanning standard. All scenarios branch from this state.",
+    phases: [
+      { type: "psp", title: "Continuous Surveillance", lanes: [
+        { role: "Duty LG", actions: ["Sweep designated zone within 10 seconds using RID scan (Recognise, Identify, Decide)", "Reach any distressed swimmer within 20 seconds of recognition", "Rescue tube worn at all times, whistle accessible"] },
+        { role: "Co-Duty LG", actions: ["15-minute patrol of pool perimeter with rescue tube", "Monitor blind spots and glare zones during rotation", "Silent signal handover on rotation change"] },
+        { role: "Senior LG / Team Lead", actions: ["Verify staffing per shift (3 LG + 1 CS)", "Rotate LGs on 20 to 30 minute cycles to preserve scan span", "Log water quality checks (3 times daily)"] },
+        { role: "Counter Staff", actions: ["Monitor entry and enforce Code of Practice signage", "Hold LG mobile devices during on-post periods", "Radio check every hour"] }
+      ]},
+      { type: "psp", title: "Preventive Intervention (KPI 3a)", lanes: [
+        { role: "Any LG", actions: ["Issue verbal warning for running, breath-hold games, or lane rope misuse", "Log intervention in daily activity register", "Escalate to SLG if patron non-compliant"] }
+      ]}
+    ]},
+  active: { title: "Active Drowning (Distressed Swimmer)", sub: "Victim conscious, vertical in water, silent struggle, unable to call for help. Recognition window under 20 seconds.",
+    phases: [
+      { type: "eap", title: "Recognition &amp; Activation", lanes: [
+        { role: "Duty LG", actions: ["Recognise distress signs within 10 second scan cycle", "Single long whistle blast, point at victim, signal Co-Duty LG", "Enter water with rescue tube within 20 seconds"] }
+      ]},
+      { type: "erp", title: "Rescue Execution", lanes: [
+        { role: "Duty LG", actions: ["Approach with rescue tube extended, verbal reassurance", "Contact tow to nearest exit point", "Assess for secondary drowning symptoms on deck"] },
+        { role: "Co-Duty LG", actions: ["Clear affected pool immediately, three short whistle blasts", "Position at pool edge to assist extrication", "Retrieve first aid kit if secondary assessment required"] },
+        { role: "Counter Staff", actions: ["Close pool admission, note time of incident", "Standby to contact NUS Security if condition deteriorates"] },
+        { role: "Senior LG", actions: ["Direct scene, ensure crowd control", "Assess victim, decide on ambulance escalation"] }
+      ]},
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Complete Appendix C Incident Report within shift", "Debrief team, review scan pattern that identified victim", "Submit report to NUS/MSUM within 24 hours"] } ] }
+    ]},
+  passive: { title: "Passive Drowning / Submerged Victim", sub: "Victim unconscious, submerged, no visible struggle. Recognition must occur within the 30-second awareness standard (KPI 1a).",
+    hasAnimation: true,
+    phases: [
+      { type: "eap", title: "Recognition &amp; Activation", lanes: [
+        { role: "Duty LG", actions: ["Identify submerged silhouette within 30 second scan", "Three long whistle blasts, point down at victim", "Immediate entry, controlled descent to victim"] }
+      ]},
+      { type: "erp", title: "Rescue &amp; Extrication", lanes: [
+        { role: "Duty LG", actions: ["Surface with victim, tow to shallow exit", "Extricate within 1 minute 30 seconds (KPI 2b)", "Commence primary survey on deck"] },
+        { role: "Co-Duty LG", actions: ["Clear all bathers from all pools", "Retrieve softpack (AED, oxy-viva, BVM, spinal board)", "Assist extrication, prepare deck for CPR"] },
+        { role: "Counter Staff", actions: ["Call NUS Security (activate 995 ambulance)", "Alert MSUM duty officer", "Trace victim ID and belongings"] },
+        { role: "Senior LG / Third LG", actions: ["Take incident command", "Direct crowd control and pool clearance", "Coordinate ambulance ingress route"] }
+      ]},
+      { type: "erp", title: "Resuscitation Sequence", lanes: [
+        { role: "Duty LG (Rescuer 1)", actions: ["Initiate CPR within 30 seconds of extrication (KPI 2c)", "30:2 compressions to ventilations", "Swap every 2 minutes with Rescuer 2"] },
+        { role: "Co-Duty LG (Rescuer 2)", actions: ["Attach AED pads within 1 minute 30 seconds", "Clear victim for shock, deliver as advised", "Prepare BVM and oxygen after first shock cycle"] },
+        { role: "Counter Staff", actions: ["Guide paramedics from gate to poolside", "Note ambulance number plate and destination hospital"] }
+      ]},
+      { type: "post", title: "Handover &amp; Post-Incident", lanes: [
+        { role: "Senior LG", actions: ["Handover to paramedics: shocks given, CPR duration, meds", "Retain AED analysis card for MSUM", "Complete Appendix C, replenish softpack consumables"] }
+      ]}
+    ]},
+  swb: { title: "Shallow Water Blackout (SWB) / Samba", sub: "Hyperventilation-induced hypoxic blackout, typically freedive or breath-hold training. Victim slumps silently, often near pool bottom.",
+    phases: [
+      { type: "eap", title: "Pre-Incident Vigilance", lanes: [{ role: "Duty LG", actions: ["Flag any patron performing repeated breath-hold sets", "Enforce buddy system for freedive activity", "Intervene at first sign of loss of motor control"] }]},
+      { type: "erp", title: "Rescue Execution", lanes: [
+        { role: "Duty LG", actions: ["Enter immediately, support head above water", "Blow across face to trigger breathing reflex if surface blackout", "Tow to exit, maintain airway"] },
+        { role: "Co-Duty LG", actions: ["Clear pool, retrieve oxy-viva and BVM", "Position for extrication at nearest edge"] },
+        { role: "Counter Staff", actions: ["Standby for ambulance activation", "Log incident time and identify buddy / group lead"] }
+      ]},
+      { type: "erp", title: "On-Deck Management", lanes: [
+        { role: "Duty LG", actions: ["Recovery position if breathing", "Administer O2 via non-rebreather at 15 LPM", "Monitor for delayed pulmonary distress up to 4 hours"] },
+        { role: "Senior LG", actions: ["Mandatory ambulance escalation (secondary drowning risk)", "Brief NUS/MSUM on activity context"] }
+      ]},
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Appendix C with activity classification", "Review whether activity should be permitted under standing PSP", "Update quarterly training brief"] } ] }
+    ]},
+  spinal: { title: "Suspected Spinal Injury", sub: "Trauma from diving, slip, or collision. Victim may be conscious. In-water stabilisation before extrication.",
+    phases: [
+      { type: "erp", title: "In-Water Stabilisation", lanes: [
+        { role: "Duty LG", actions: ["Approach without creating waves", "Vice grip or head splint technique to immobilise C-spine", "Hold position, do not rotate victim"] },
+        { role: "Co-Duty LG", actions: ["Clear pool", "Retrieve spinal board and stiff neck collar", "Enter water to assist board slide"] }
+      ]},
+      { type: "erp", title: "Extrication", lanes: [
+        { role: "Both LGs", actions: ["Slide spinal board under victim, secure straps", "Apply cervical collar", "Coordinated lift to deck, maintain spinal alignment"] },
+        { role: "Counter Staff", actions: ["Call ambulance immediately", "Prepare route for paramedics"] },
+        { role: "Senior LG", actions: ["Monitor breathing and consciousness", "Prevent movement, reassure victim"] }
+      ]},
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Appendix C with mechanism of injury", "Preserve scene for MSUM/WSH review if applicable", "Team debrief on stabilisation technique"] } ] }
+    ]},
+  cardiac: { title: "Cardiac Arrest on Deck", sub: "Sudden collapse of patron or staff on pool deck or in gym/MPH support role. Not water-related.",
+    phases: [
+      { type: "erp", title: "Immediate Response", lanes: [
+        { role: "Nearest LG", actions: ["Confirm unresponsive, no breathing", "Shout for AED and help", "Commence CPR within 30 seconds"] },
+        { role: "Second LG", actions: ["Retrieve AED, first aid kit, oxy-viva", "Attach pads, deliver shock as advised"] },
+        { role: "Counter Staff", actions: ["Call 995 and NUS Security", "Clear route for paramedics"] },
+        { role: "Senior LG", actions: ["Take command, ensure pool coverage maintained if possible", "Decide whether to close pool"] }
+      ]},
+      { type: "post", title: "Post-Incident", lanes: [ { role: "Senior LG", actions: ["Complete Appendix C", "Reset AED, replenish pads and consumables", "Notify NUS/MSUM and support staff welfare"] } ] }
+    ]},
+  lightning: { title: "Lightning Alert", sub: "Triggered by MSUM alert system or observed strike within 8km. Both pools evacuated.",
+    phases: [
+      { type: "eap", title: "Activation", lanes: [
+        { role: "Senior LG", actions: ["Confirm alert with MSUM", "Sound evacuation whistle pattern"] },
+        { role: "Duty LG", actions: ["Clear all bathers from water immediately", "Direct patrons to sheltered zones away from metal fittings"] },
+        { role: "Counter Staff", actions: ["Post lightning notice, suspend admissions", "Log alert start time"] }
+      ]},
+      { type: "eap", title: "All-Clear Protocol", lanes: [ { role: "Senior LG", actions: ["30-minute wait from last observed strike before reopening", "Log all-clear time and reopen pools"] } ] }
+    ]},
+  chemical: { title: "Chemical / Water Quality Incident", sub: "Chlorine leak, cloudy water, suspected contamination, or failed water test.",
+    phases: [
+      { type: "eap", title: "Immediate Action", lanes: [
+        { role: "Duty LG", actions: ["Close affected pool immediately", "Evacuate bathers upwind if chlorine odour present", "Rope off area"] },
+        { role: "Senior LG", actions: ["Notify NUS/MSUM and pool plant operator", "Retest water, log parameters"] },
+        { role: "Counter Staff", actions: ["Post closure notice", "Divert patrons to unaffected pool if operational"] }
+      ]},
+      { type: "post", title: "Reopening", lanes: [ { role: "Senior LG", actions: ["Reopen only after MSUM approval and two consecutive clear tests", "Log incident in daily register"] } ] }
+    ]},
+  fire: { title: "Fire / Building Evacuation", sub: "Fire alarm activation at USC or SRC. Support role to NUS Fire Safety Manager.",
+    phases: [
+      { type: "eap", title: "Evacuation", lanes: [
+        { role: "Duty LG", actions: ["Clear all bathers from water", "Direct patrons to nearest fire exit and assembly point"] },
+        { role: "Co-Duty LG", actions: ["Sweep changing rooms and toilets", "Assist mobility-impaired patrons"] },
+        { role: "Counter Staff", actions: ["Grab attendance register and daily log", "Report to assembly point for headcount"] },
+        { role: "Senior LG", actions: ["Report to NUS Fire Warden", "Confirm all staff and known patrons accounted for"] }
+      ]}
+    ]},
+  missing: { title: "Missing Person Report", sub: "Parent or companion reports a missing child or adult believed to have been at the pool.",
+    phases: [
+      { type: "eap", title: "Search Activation", lanes: [
+        { role: "Counter Staff", actions: ["Take description, last known location, and time", "Alert Senior LG immediately"] },
+        { role: "Senior LG", actions: ["Immediate visual sweep of all pools (bottom scan)", "Do not delay water search for land search"] },
+        { role: "Duty + Co-Duty LG", actions: ["Split sweep: one water bottom scan, one changing rooms and deck", "Whistle pattern for pool clearance if bottom scan needed"] }
+      ]},
+      { type: "post", title: "Escalation", lanes: [ { role: "Senior LG", actions: ["If not located within 5 minutes, escalate to NUS Security", "Log all steps taken with timestamps"] } ] }
+    ]},
+  misconduct: { title: "Patron Misconduct", sub: "Non-compliance with pool rules, aggressive behaviour, or unauthorised entry.",
+    phases: [
+      { type: "psp", title: "Graduated Response", lanes: [
+        { role: "Duty LG", actions: ["Verbal warning citing specific rule", "If repeated, second warning with named consequence"] },
+        { role: "Senior LG", actions: ["Take over engagement if patron remains non-compliant", "Request patron leave the facility"] },
+        { role: "Counter Staff", actions: ["Log incident with time and description", "Contact NUS Security if patron refuses to leave or becomes aggressive"] }
+      ]}
+    ]}
+};
+
+const kpiData = {
+  psp: [["Scan cycle", "10 seconds"], ["Recognition to reach", "20 seconds"], ["Perimeter patrol", "Every 15 min"], ["Preventive interventions", "Logged (KPI 3a)"]],
+  active: [["Recognition", "10 sec scan"], ["Reach victim", "Within 20 sec"], ["Extrication", "Within 90 sec"]],
+  passive: [["Awareness drill standard", "30 sec"], ["Extrication (KPI 2b)", "1 min 30 sec"], ["CPR initiation (KPI 2c)", "30 sec"], ["AED setup", "1 min 30 sec"]],
+  swb: [["Recognition (LMC signs)", "Immediate"], ["O2 administration", "15 LPM NRB"], ["Ambulance", "Mandatory"]],
+  spinal: [["Stabilisation", "Before extrication"], ["Board application", "In-water"], ["Ambulance", "Mandatory"]],
+  cardiac: [["CPR initiation", "30 sec"], ["AED attachment", "90 sec"], ["995 activation", "Immediate"]],
+  lightning: [["Pool clearance", "Immediate on alert"], ["All-clear wait", "30 min from last strike"]],
+  chemical: [["Pool closure", "Immediate"], ["Reopen criteria", "2 clear tests + MSUM sign-off"]],
+  fire: [["Evacuation initiation", "On alarm"], ["Assembly headcount", "Within 5 min"]],
+  missing: [["Water bottom scan", "Immediate"], ["Security escalation", "5 min"]],
+  misconduct: [["Warning", "First occurrence"], ["Escalation", "Second occurrence"], ["Security involvement", "If refusal or aggression"]]
+};
+
+const equipData = {
+  psp: ["Rescue tube (each LG)", "Whistle", "Water test kit", "Daily activity register"],
+  active: ["Rescue tube", "First aid kit", "Whistle", "Incident report (Appendix C)"],
+  passive: ["Rescue tube", "AED softpack", "Oxy-viva + spare cylinders", "BVM", "Spinal board", "Stretcher", "Walkie-talkie"],
+  swb: ["Rescue tube", "Oxy-viva with NRB mask", "BVM", "First aid kit"],
+  spinal: ["Spinal board", "Stiff neck collar (adult + child)", "Head immobiliser", "Rescue tube"],
+  cardiac: ["AED with adult pads", "Oxy-viva", "BVM", "First aid kit", "Shaver + towel"],
+  lightning: ["MSUM alert system", "PA / whistle", "Incident log"],
+  chemical: ["Water test kit", "Closure signage", "PPE (gloves, mask)", "MSUM contact list"],
+  fire: ["Attendance register", "Assembly point map", "First aid kit (mobile)"],
+  missing: ["Walkie-talkie", "Description log form", "Pool bottom scan protocol"],
+  misconduct: ["Rule signage reference", "Incident log", "NUS Security contact"]
+};
+
+// ===== PASSIVE DROWNING ANIMATION =====
+// Coordinates in SVG space (800 wide, 420 tall)
+// Positions defined as keyframes; interpolated linearly
+
+const passiveActors = {
+  dutyLG: { color: '#dc2626', label: 'D', name: 'Duty LG',
+    keyframes: [
+      { t: 0, x: 555, y: 120 },     // on high chair NE corner
+      { t: 20, x: 555, y: 120 },    // recognition
+      { t: 22, x: 555, y: 120 },    // whistle, prep to jump
+      { t: 30, x: 380, y: 240 },    // reached victim
+      { t: 55, x: 220, y: 190 },    // surfacing at edge with victim
+      { t: 90, x: 220, y: 130 },    // extrication onto deck
+      { t: 300, x: 220, y: 130 }    // remains for CPR
+    ]},
+  coDutyLG: { color: '#ea580c', label: 'C', name: 'Co-Duty LG',
+    keyframes: [
+      { t: 0, x: 380, y: 380 },     // patrolling south side
+      { t: 22, x: 380, y: 380 },
+      { t: 45, x: 100, y: 340 },    // moving to softpack
+      { t: 65, x: 100, y: 340 },    // grabbing softpack
+      { t: 90, x: 220, y: 150 },    // arriving at victim with softpack
+      { t: 300, x: 220, y: 150 }
+    ]},
+  seniorLG: { color: '#1F3864', label: 'S', name: 'Senior LG',
+    keyframes: [
+      { t: 0, x: 100, y: 60 },      // office
+      { t: 25, x: 100, y: 60 },
+      { t: 60, x: 250, y: 100 },    // moved to scene
+      { t: 300, x: 250, y: 100 }
+    ]},
+  counterStaff: { color: '#7c3aed', label: 'CS', name: 'Counter Staff',
+    keyframes: [
+      { t: 0, x: 730, y: 60 },      // at counter
+      { t: 60, x: 730, y: 60 },
+      { t: 95, x: 730, y: 100 },    // moved to phone
+      { t: 300, x: 730, y: 100 }
+    ]},
+  victim: { color: '#facc15', label: 'V', name: 'Victim',
+    keyframes: [
+      { t: 0, x: 380, y: 200 },     // swimming
+      { t: 10, x: 380, y: 240 },    // submerging
+      { t: 30, x: 380, y: 240 },    // at bottom
+      { t: 55, x: 220, y: 190 },    // being towed
+      { t: 90, x: 220, y: 130 },    // on deck
+      { t: 300, x: 220, y: 130 }
+    ]}
+};
+
+const passiveEvents = [
+  { t: 0, text: "Baseline surveillance. Duty LG scanning indoor competition pool from M1 position." },
+  { t: 8, text: "Victim submerges silently mid-pool. No struggle observed by other bathers." },
+  { t: 20, text: "Duty LG recognises submerged silhouette (within 30 sec KPI 1a)." },
+  { t: 22, text: "Three long whistle blasts. Duty LG signals victim location and enters water." },
+  { t: 30, text: "Duty LG reaches victim at pool bottom." },
+  { t: 45, text: "Co-Duty LG clears bathers, moves to softpack station." },
+  { t: 55, text: "Duty LG surfaces with victim, tows to nearest edge." },
+  { t: 65, text: "Co-Duty LG retrieves softpack (AED, oxy-viva, BVM)." },
+  { t: 90, text: "Extrication complete on deck (KPI 2b: within 90 sec). Primary survey begins." },
+  { t: 95, text: "Counter Staff activates 995 ambulance via NUS Security." },
+  { t: 120, text: "CPR initiated (KPI 2c: within 30 sec of extrication). 30:2 ratio." },
+  { t: 150, text: "AED pads attached by Co-Duty LG." },
+  { t: 180, text: "AED analysis. Shock advised. Clear victim." },
+  { t: 185, text: "First shock delivered. CPR resumed." },
+  { t: 240, text: "Rescuer swap. Second CPR cycle." },
+  { t: 260, text: "Second AED analysis. Continued protocol." },
+  { t: 290, text: "Paramedics arrive. Handover: shocks given, CPR duration, patient status." }
+];
+
+const passiveKpis = [
+  { label: "Recognition", target: "30 sec", hitAt: 20 },
+  { label: "Extrication", target: "90 sec", hitAt: 90 },
+  { label: "CPR initiation", target: "+30 sec", hitAt: 120 },
+  { label: "AED attached", target: "+90 sec", hitAt: 150 }
+];
+
+const ANIM_DURATION = 300; // seconds (5:00)
+
+// ===== RENDER =====
+function renderScenario(key) {
+  const s = scenarios[key];
+  const main = document.getElementById('main');
+  const aside = document.getElementById('aside');
+
+  let html = `<div class="scenario-title">${s.title}</div><div class="scenario-sub">${s.sub}</div>`;
+
+  if (s.hasAnimation) {
+    html += renderAnimationBlock();
+  } else if (key !== 'psp') {
+    html += `<div class="anim-container"><div class="anim-placeholder">Animated sequence for this scenario in development. Currently the Passive Drowning scenario is the reference build.</div></div>`;
+  }
+
+  s.phases.forEach(p => {
+    html += `<div class="phase"><div class="phase-header"><span class="phase-badge ${p.type}">${p.type.toUpperCase()}</span><span class="phase-title">${p.title}</span></div><div class="lanes">`;
+    p.lanes.forEach(l => {
+      html += `<div class="lane-role">${l.role}</div><div class="lane-actions"><ol>`;
+      l.actions.forEach(a => { html += `<li>${a}</li>`; });
+      html += `</ol></div>`;
+    });
+    html += `</div></div>`;
+  });
+  main.innerHTML = html;
+
+  if (s.hasAnimation) initAnimation();
+
+  let asideHtml = `<div class="aside-block"><h3>KPI Timings</h3>`;
+  kpiData[key].forEach(([label, val]) => { asideHtml += `<div class="kpi-row"><span class="kpi-label">${label}</span><span class="kpi-value">${val}</span></div>`; });
+  asideHtml += `</div><div class="aside-block"><h3>Equipment Deployed</h3><ul class="equip-list">`;
+  equipData[key].forEach(e => { asideHtml += `<li>${e}</li>`; });
+  asideHtml += `</ul></div><div class="aside-block"><h3>Reference</h3><div style="font-size:12px;color:#4b5563;">Appendix C: Incident Report Form<br>Appendix H/I/J: Equipment Checklists<br>Requirement Spec Clause 4.4<br>KPI matrix (Vigilance, Response, Prevention)</div></div>`;
+  aside.innerHTML = asideHtml;
+}
+
+function renderAnimationBlock() {
+  return `
+    <div class="anim-container">
+      <div class="anim-header">
+        <div class="anim-title">Animated ERP Sequence &nbsp;·&nbsp; USC Indoor Competition Pool</div>
+        <div class="anim-controls">
+          <button class="anim-btn" id="playBtn">▶ Play</button>
+          <button class="anim-btn secondary" id="resetBtn">Reset</button>
+        </div>
+      </div>
+      <div class="anim-stage">
+        <svg viewBox="0 0 800 420" preserveAspectRatio="xMidYMid meet">
+          <!-- Deck -->
+          <rect x="0" y="0" width="800" height="420" fill="#e5e7eb"/>
+          <!-- Pool -->
+          <rect x="150" y="80" width="480" height="280" fill="#3b82f6" opacity="0.35" stroke="#1e40af" stroke-width="2"/>
+          <text x="390" y="230" text-anchor="middle" font-size="14" fill="#1e3a8a" opacity="0.5">Indoor Competition Pool (M1)</text>
+          <!-- Lane markers -->
+          <line x1="150" y1="150" x2="630" y2="150" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="150" y1="220" x2="630" y2="220" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4"/>
+          <line x1="150" y1="290" x2="630" y2="290" stroke="#93c5fd" stroke-width="1" stroke-dasharray="4"/>
+          <!-- High chair (LG post) -->
+          <rect x="545" y="105" width="20" height="30" fill="#78716c" stroke="#44403c" stroke-width="1"/>
+          <text x="555" y="152" text-anchor="middle" font-size="9" fill="#44403c">M1 chair</text>
+          <!-- Softpack station -->
+          <rect x="85" y="325" width="30" height="30" fill="#dc2626" stroke="#7f1d1d" stroke-width="1"/>
+          <text x="100" y="375" text-anchor="middle" font-size="9" fill="#7f1d1d">Softpack</text>
+          <!-- SLG Office -->
+          <rect x="60" y="15" width="80" height="50" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+          <text x="100" y="45" text-anchor="middle" font-size="10" fill="#78350f">SLG Office</text>
+          <!-- Counter -->
+          <rect x="680" y="15" width="100" height="50" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="730" y="45" text-anchor="middle" font-size="10" fill="#5b21b6">Counter</text>
+          <!-- Phone -->
+          <circle cx="770" cy="55" r="4" fill="#7c3aed"/>
+          <!-- Ambulance ingress -->
+          <path d="M 780 200 L 800 200" stroke="#64748b" stroke-width="2" stroke-dasharray="4"/>
+          <text x="770" y="195" text-anchor="end" font-size="9" fill="#64748b">↗ Ambulance ingress</text>
+          <!-- Actors group (populated by JS) -->
+          <g id="actorGroup"></g>
+        </svg>
+        <div class="clock-overlay" id="clock">T + 00:00</div>
+      </div>
+      <div class="kpi-strip" id="kpiStrip"></div>
+      <div class="anim-log" id="animLog"><div class="log-line"><span class="log-time">READY</span>Press play to run the sequence.</div></div>
+    </div>
+  `;
+}
+
+// ===== ANIMATION ENGINE =====
+let animState = { playing: false, t: 0, startTime: 0, rafId: null };
+
+function initAnimation() {
+  const actorGroup = document.getElementById('actorGroup');
+  actorGroup.innerHTML = '';
+  Object.entries(passiveActors).forEach(([key, actor]) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('id', `actor-${key}`);
+    g.setAttribute('class', 'actor');
+    const pos = actor.keyframes[0];
+    g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+    g.innerHTML = `
+      <circle r="14" fill="${actor.color}" stroke="white" stroke-width="2"/>
+      <text text-anchor="middle" dy="4" font-size="12" font-weight="700" fill="white">${actor.label}</text>
+    `;
+    actorGroup.appendChild(g);
+  });
+
+  renderKpiStrip(0);
+  document.getElementById('playBtn').addEventListener('click', togglePlay);
+  document.getElementById('resetBtn').addEventListener('click', resetAnim);
+}
+
+function interpolatePosition(actor, t) {
+  const kfs = actor.keyframes;
+  if (t <= kfs[0].t) return { x: kfs[0].x, y: kfs[0].y };
+  if (t >= kfs[kfs.length - 1].t) return { x: kfs[kfs.length - 1].x, y: kfs[kfs.length - 1].y };
+  for (let i = 0; i < kfs.length - 1; i++) {
+    if (t >= kfs[i].t && t <= kfs[i + 1].t) {
+      const span = kfs[i + 1].t - kfs[i].t;
+      const progress = span === 0 ? 0 : (t - kfs[i].t) / span;
+      return {
+        x: kfs[i].x + (kfs[i + 1].x - kfs[i].x) * progress,
+        y: kfs[i].y + (kfs[i + 1].y - kfs[i].y) * progress
+      };
+    }
+  }
+  return { x: kfs[0].x, y: kfs[0].y };
+}
+
+function formatTime(t) {
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `T + ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function renderKpiStrip(currentT) {
+  const strip = document.getElementById('kpiStrip');
+  if (!strip) return;
+  strip.innerHTML = passiveKpis.map(k => {
+    const hit = currentT >= k.hitAt;
+    return `<div class="kpi-item ${hit ? 'hit' : 'pending'}">
+      <div class="kpi-item-label">${k.label}</div>
+      <div>Target: ${k.target}</div>
+      <div>${hit ? '✓ Hit at ' + formatTime(k.hitAt).replace('T + ', '') : 'Pending'}</div>
+    </div>`;
+  }).join('');
+}
+
+let lastLoggedIndex = -1;
+function updateLog(t) {
+  const log = document.getElementById('animLog');
+  if (!log) return;
+  for (let i = lastLoggedIndex + 1; i < passiveEvents.length; i++) {
+    if (t >= passiveEvents[i].t) {
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.innerHTML = `<span class="log-time">${formatTime(passiveEvents[i].t).replace('T + ', '')}</span>${passiveEvents[i].text}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+      lastLoggedIndex = i;
+    } else {
+      break;
+    }
+  }
+}
+
+function frame(now) {
+  if (!animState.playing) return;
+  const elapsed = (now - animState.startTime) / 1000;
+  animState.t = elapsed;
+  if (animState.t >= ANIM_DURATION) {
+    animState.t = ANIM_DURATION;
+    animState.playing = false;
+    document.getElementById('playBtn').textContent = '▶ Play';
+  }
+  document.getElementById('clock').textContent = formatTime(animState.t);
+  Object.entries(passiveActors).forEach(([key, actor]) => {
+    const el = document.getElementById(`actor-${key}`);
+    if (!el) return;
+    const pos = interpolatePosition(actor, animState.t);
+    el.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+    // Alert flash for Duty LG at recognition
+    if (key === 'dutyLG' && animState.t >= 20 && animState.t <= 25) {
+      el.classList.add('alert');
+    } else {
+      el.classList.remove('alert');
+    }
+  });
+  renderKpiStrip(animState.t);
+  updateLog(animState.t);
+  if (animState.playing) animState.rafId = requestAnimationFrame(frame);
+}
+
+function togglePlay() {
+  if (animState.playing) {
+    animState.playing = false;
+    if (animState.rafId) cancelAnimationFrame(animState.rafId);
+    document.getElementById('playBtn').textContent = '▶ Play';
+  } else {
+    if (animState.t >= ANIM_DURATION) resetAnim();
+    animState.playing = true;
+    animState.startTime = performance.now() - animState.t * 1000;
+    document.getElementById('playBtn').textContent = '❚❚ Pause';
+    animState.rafId = requestAnimationFrame(frame);
+  }
+}
+
+function resetAnim() {
+  animState.playing = false;
+  if (animState.rafId) cancelAnimationFrame(animState.rafId);
+  animState.t = 0;
+  lastLoggedIndex = -1;
+  document.getElementById('playBtn').textContent = '▶ Play';
+  document.getElementById('clock').textContent = 'T + 00:00';
+  document.getElementById('animLog').innerHTML = '<div class="log-line"><span class="log-time">READY</span>Press play to run the sequence.</div>';
+  Object.entries(passiveActors).forEach(([key, actor]) => {
+    const el = document.getElementById(`actor-${key}`);
+    if (!el) return;
+    const pos = actor.keyframes[0];
+    el.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+    el.classList.remove('alert');
+  });
+  renderKpiStrip(0);
+}
+
+// ===== INIT =====
+document.querySelectorAll('.scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    resetAnim();
+    renderScenario(btn.dataset.scenario);
+  });
+});
+
+renderScenario('psp');
+</script>
+</body>
+</html>
